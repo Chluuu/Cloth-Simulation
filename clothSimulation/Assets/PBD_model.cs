@@ -8,7 +8,30 @@ public class PBD_model: MonoBehaviour {
 	int[] 		E;
 	float[] 	L;
 	Vector3[] 	V;
+	int			n = 21;
 
+	ComputeBuffer vertPos;
+	ComputeBuffer vertVel;
+	ComputeBuffer vertMove;
+	ComputeBuffer moveCount;
+
+	[SerializeField] ComputeShader _compute;
+
+	static class Kernels{
+		public const int SetUp=0;
+		public const int Blending=1;
+		public const int Collision=2;
+	}
+
+	int BlockCount { get { return (n + 7) / 8; } }
+	int BlockCountEdge;
+
+	void OnDestroy(){
+		vertPos.Release();
+		vertVel.Release();
+		vertMove.Release();
+		moveCount.Release();
+	}
 
 	// Use this for initialization
 	void Start () 
@@ -16,10 +39,15 @@ public class PBD_model: MonoBehaviour {
 		Mesh mesh = GetComponent<MeshFilter> ().mesh;
 
 		//Resize the mesh.
-		int n=21;
 		Vector3[] X  	= new Vector3[n*n];
 		Vector2[] UV 	= new Vector2[n*n];
 		int[] T	= new int[(n-1)*(n-1)*6];
+
+		vertPos=new ComputeBuffer(n*n, sizeof(float)*3);
+		vertVel=new ComputeBuffer(n*n, sizeof(float)*3);
+		vertMove=new ComputeBuffer(n*n, sizeof(float)*3);
+		moveCount=new ComputeBuffer(n*n, sizeof(float));
+
 		for(int j=0; j<n; j++)
 		for(int i=0; i<n; i++)
 		{
@@ -86,6 +114,9 @@ public class PBD_model: MonoBehaviour {
 		V = new Vector3[X.Length];
 		for (int i=0; i<X.Length; i++)
 			V[i] = new Vector3 (0, 0, 0);
+
+		vertPos.SetData(X);
+		vertVel.SetData(V);
 	}
 
 	void Quick_Sort(ref int[] a, int l, int r)
@@ -131,8 +162,33 @@ public class PBD_model: MonoBehaviour {
 		Mesh mesh = GetComponent<MeshFilter> ().mesh;
 		Vector3[] vertices = mesh.vertices;
 
+		Vector3[] moves=new Vector3[n*n];
+		float[] moveN=new float[n*n];
 		//Apply PBD here.
-		//...
+		for(int e=0;e<E.Length/2;e++)
+		{
+			int i = E[e*2+0];
+			int j = E[e*2+1];
+			float distance=(vertices[i]-vertices[j]).magnitude;
+			moves[i]+=0.5f*(vertices[i]+vertices[j]+L[e]*(vertices[i]-vertices[j])/distance);
+			moveN[i]++;
+			moves[j]+=0.5f*(vertices[i]+vertices[j]-L[e]*(vertices[i]-vertices[j])/distance);
+			moveN[j]++;
+		}
+
+		vertPos.SetData(vertices);
+		vertMove.SetData(moves);
+		moveCount.SetData(moveN);
+
+		_compute.SetBuffer(Kernels.Blending, "_Moves", vertMove);
+		_compute.SetBuffer(Kernels.Blending, "_MoveCount", moveCount);
+		_compute.SetBuffer(Kernels.Blending, "_Pos", vertPos);
+		_compute.SetBuffer(Kernels.Blending, "_Vel", vertVel);
+		_compute.Dispatch(Kernels.Blending, BlockCount, BlockCount, 1);
+
+		vertPos.GetData(vertices);
+		vertVel.GetData(V);
+
 		mesh.vertices = vertices;
 	}
 
@@ -141,8 +197,17 @@ public class PBD_model: MonoBehaviour {
 		Mesh mesh = GetComponent<MeshFilter> ().mesh;
 		Vector3[] X = mesh.vertices;
 		
-		//For every vertex, detect collision and apply impulse if needed.
-		//...
+		//Handle colllision.
+		GameObject sphere=GameObject.Find("Sphere");
+		Vector3 center=sphere.transform.position;
+
+		_compute.SetVector("_SphereCenter", center);
+		_compute.SetBuffer(Kernels.Collision, "_Pos", vertPos);
+		_compute.SetBuffer(Kernels.Collision, "_Vel", vertVel);
+		_compute.Dispatch(Kernels.Collision, BlockCount, BlockCount, 1);
+		vertPos.GetData(X);
+		vertVel.GetData(V);
+
 		mesh.vertices = X;
 	}
 
@@ -152,12 +217,17 @@ public class PBD_model: MonoBehaviour {
 		Mesh mesh = GetComponent<MeshFilter> ().mesh;
 		Vector3[] X = mesh.vertices;
 
-		for(int i=0; i<X.Length; i++)
-		{
-			if(i==0 || i==20)	continue;
-			//Initial Setup
-			//...
-		}
+		//Initial Setup.
+		vertPos.SetData(X);
+		_compute.SetVector("_Gravity",new Vector3(0,-9.98f,0));
+		_compute.SetFloat("_DeltaTime", t);
+		_compute.SetFloat("_Size", n);
+		_compute.SetFloat("_Damping", damping);
+		_compute.SetBuffer(Kernels.SetUp, "_Pos", vertPos);
+		_compute.SetBuffer(Kernels.SetUp, "_Vel", vertVel);
+		_compute.Dispatch(Kernels.SetUp, BlockCount, BlockCount, 1);
+		vertPos.GetData(X);
+
 		mesh.vertices = X;
 
 		for(int l=0; l<32; l++)

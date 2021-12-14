@@ -1,0 +1,56 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel SetUp
+#pragma kernel Blending
+#pragma kernel Collision
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWStructuredBuffer<float3> _Pos;
+RWStructuredBuffer<float3> _Vel;
+StructuredBuffer<float3> _Moves;
+StructuredBuffer<float> _MoveCount;
+
+float _DeltaTime;
+float _Size;
+float _Damping;
+float3 _Gravity;
+float3 _SphereCenter;
+
+[numthreads(8,8,1)]
+void SetUp (uint2 id : SV_DispatchThreadID)
+{
+    if(id.x<_Size&&id.y<_Size){
+        int idx = id.x + id.y*_Size;
+        if(idx!=0&&idx!=20){
+            _Pos[idx]=_Pos[idx]+_DeltaTime*_Vel[idx];
+            _Vel[idx]=_Vel[idx]*_Damping;
+            _Vel[idx]=_Vel[idx]+_DeltaTime*_Gravity;
+        }
+    }
+}
+
+[numthreads(8,8,1)]
+void Blending (uint2 id : SV_DispatchThreadID)
+{
+    int idx = id.x + id.y*_Size;
+    if(idx!=0&&idx!=20){
+        float3 newX=(0.2*_Pos[idx]+_Moves[idx])/(0.2+_MoveCount[idx]);
+        _Vel[idx]=_Vel[idx]+(newX-_Pos[idx])/_DeltaTime;
+        _Pos[idx]=newX;
+    }
+}
+
+[numthreads(8,8,1)]
+void Collision(uint2 id : SV_DispatchThreadID)
+{
+    int idx = id.x + id.y*_Size;
+    if(idx!=0&&idx!=20){
+        float radius=2.7f;
+        float distance=sqrt((_Pos[idx].x-_SphereCenter.x)*(_Pos[idx].x-_SphereCenter.x)+(_Pos[idx].y-_SphereCenter.y)*(_Pos[idx].y-_SphereCenter.y)+(_Pos[idx].z-_SphereCenter.z)*(_Pos[idx].z-_SphereCenter.z));
+        if(distance<=radius){
+            float3 intersection=_SphereCenter+radius*(_Pos[idx]-_SphereCenter)/distance;
+
+            _Vel[idx]=_Vel[idx]+(intersection-_Pos[idx])/_DeltaTime;
+            _Pos[idx]=intersection;
+        }
+    }
+}

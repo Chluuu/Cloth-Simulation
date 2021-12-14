@@ -56,8 +56,6 @@ public class implicit_model : MonoBehaviour
 		vertPosTilde=new ComputeBuffer(n*n, sizeof(float)*3);
 		vertGra=new ComputeBuffer(n*n, sizeof(float)*3);
 		vertPosLast=new ComputeBuffer(n*n, sizeof(float)*3);
-
-		Vector3 test=new Vector3(1,2,3.3f);
 		
 		for(int j=0; j<n; j++)
 		for(int i=0; i<n; i++)
