@@ -1,0 +1,31 @@
+Base path: 'C:/Program Files/Unity/Editor/Data', plugins path 'C:/Program Files/Unity/Editor/Data/PlaybackEngines'
+Cmd: initializeCompiler
+
+Cmd: compileComputeKernel
+  insize=2521 path=F:/2021b/Cloth-Simulation/clothSimulation/Assets/Implicit.compute kernel=SetUp cachingPP=1 ppOnly=0 stripLineD=0 buildPlatform=19 km=<UNITY_VERSION=202030> pKW=UNITY_ENABLE_REFLECTION_BUFFERS UNITY_USE_DITHER_MASK_FOR_ALPHABLENDED_SHADOWS UNITY_PBS_USE_BRDF1 UNITY_SPECCUBE_BOX_PROJECTION UNITY_SPECCUBE_BLENDING UNITY_ENABLE_DETAIL_NORMALMAP SHADER_API_DESKTOP UNITY_COLORSPACE_GAMMA UNITY_LIGHT_PROBE_PROXY_VOLUME UNITY_LIGHTMAP_FULL_HDR uKW=SHADER_STAGE_COMPUTE platform=d3d11 flags=0  error: 1 plat 4 at Implicit.compute(27): signed/unsigned mismatch, unsigned assumed
+  error: 1 plat 4 at Implicit.compute(42): signed/unsigned mismatch, unsigned assumed
+  error: 2 plat 4 at Implicit.compute(82): invalid subscript 'magnitude'
+ ok=0 outsize=0
+
+Cmd: compileComputeKernel
+  insize=2515 path=F:/2021b/Cloth-Simulation/clothSimulation/Assets/Implicit.compute kernel=UpdateV cachingPP=1 ppOnly=0 stripLineD=0 buildPlatform=19 km=<UNITY_VERSION=202030> pKW=UNITY_ENABLE_REFLECTION_BUFFERS UNITY_USE_DITHER_MASK_FOR_ALPHABLENDED_SHADOWS UNITY_PBS_USE_BRDF1 UNITY_SPECCUBE_BOX_PROJECTION UNITY_SPECCUBE_BLENDING UNITY_ENABLE_DETAIL_NORMALMAP SHADER_API_DESKTOP UNITY_COLORSPACE_GAMMA UNITY_LIGHT_PROBE_PROXY_VOLUME UNITY_LIGHTMAP_FULL_HDR uKW=SHADER_STAGE_COMPUTE platform=d3d11 flags=0  error: 1 plat 4 at Implicit.compute(27): signed/unsigned mismatch, unsigned assumed
+  error: 1 plat 4 at Implicit.compute(42): signed/unsigned mismatch, unsigned assumed
+  error: 1 plat 4 at Implicit.compute(82): implicit truncation of vector type
+  error: 1 plat 4 at Implicit.compute(91): signed/unsigned mismatch, unsigned assumed
+ ok=1 outsize=916
+
+Cmd: compileComputeKernel
+  insize=2671 path=F:/2021b/Cloth-Simulation/clothSimulation/Assets/Implicit.compute kernel=UpdateX cachingPP=1 ppOnly=0 stripLineD=0 buildPlatform=19 km=<UNITY_VERSION=202030> pKW=UNITY_ENABLE_REFLECTION_BUFFERS UNITY_USE_DITHER_MASK_FOR_ALPHABLENDED_SHADOWS UNITY_PBS_USE_BRDF1 UNITY_SPECCUBE_BOX_PROJECTION UNITY_SPECCUBE_BLENDING UNITY_ENABLE_DETAIL_NORMALMAP SHADER_API_DESKTOP UNITY_COLORSPACE_GAMMA UNITY_LIGHT_PROBE_PROXY_VOLUME UNITY_LIGHTMAP_FULL_HDR uKW=SHADER_STAGE_COMPUTE platform=d3d11 flags=0  error: 1 plat 4 at Implicit.compute(27): signed/unsigned mismatch, unsigned assumed
+  error: 1 plat 4 at Implicit.compute(42): signed/unsigned mismatch, unsigned assumed
+  error: 1 plat 4 at Implicit.compute(91): signed/unsigned mismatch, unsigned assumed
+ ok=1 outsize=1211
+
+Cmd: compileComputeKernel
+  insize=2844 path=F:/2021b/Cloth-Simulation/clothSimulation/Assets/Implicit.compute kernel=Test cachingPP=1 ppOnly=0 stripLineD=0 buildPlatform=19 km=<UNITY_VERSION=202030> pKW=UNITY_ENABLE_REFLECTION_BUFFERS UNITY_USE_DITHER_MASK_FOR_ALPHABLENDED_SHADOWS UNITY_PBS_USE_BRDF1 UNITY_SPECCUBE_BOX_PROJECTION UNITY_SPECCUBE_BLENDING UNITY_ENABLE_DETAIL_NORMALMAP SHADER_API_DESKTOP UNITY_COLORSPACE_GAMMA UNITY_LIGHT_PROBE_PROXY_VOLUME UNITY_LIGHTMAP_FULL_HDR uKW=SHADER_STAGE_COMPUTE platform=d3d11 flags=0  error: 1 plat 4 at Implicit.compute(27): signed/unsigned mismatch, unsigned assumed
+  error: 1 plat 4 at Implicit.compute(42): signed/unsigned mismatch, unsigned assumed
+  error: 1 plat 4 at Implicit.compute(96): signed/unsigned mismatch, unsigned assumed
+ ok=1 outsize=690
+
+Cmd: shutdown
+
+Quitting shader compiler process

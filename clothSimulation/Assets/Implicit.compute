@@ -1,0 +1,101 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel SetUp
+#pragma kernel CalGradientElement
+#pragma kernel UpdateX
+#pragma kernel UpdateV
+#pragma kernel Collision
+#pragma kernel Test
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWStructuredBuffer<float3> _Pos;
+RWStructuredBuffer<float3> _PosTilde;
+RWStructuredBuffer<float3> _Vel;
+RWStructuredBuffer<float3> _Gra;
+RWStructuredBuffer<float3> _PosLast;
+
+float _DeltaTime;
+float _Size;
+float _Damping;
+float3 _Gravity;
+float _K;
+float _W;
+float3 _SphereCenter;
+
+[numthreads(8,8,1)]
+void SetUp (uint2 id : SV_DispatchThreadID)
+{
+    if(id.x<_Size&&id.y<_Size){
+        int idx = id.x + id.y*_Size;
+        if(idx!=0&&idx!=20){
+            _PosTilde[idx]=_Pos[idx] + _DeltaTime*_Vel[idx];
+            _Vel[idx]=_Vel[idx]*_Damping;
+            _Pos[idx]=_PosTilde[idx];
+        }else{
+            _PosTilde[idx]=_Pos[idx];
+        }
+    }
+}
+
+[numthreads(8,8,1)]
+void CalGradientElement(uint2 id : SV_DispatchThreadID)
+{
+    if(id.x<_Size&&id.y<_Size){
+        int idx = id.x + id.y*_Size;
+    if(idx!=0&&idx!=20){
+        //Momentum
+        _Gra[idx]=(1.0f/(_DeltaTime*_DeltaTime))*(_Pos[idx]-_PosTilde[idx]);
+        //Gravity
+        _Gra[idx]=_Gra[idx]-_Gravity;
+    }
+    }
+}
+
+[numthreads(8,8,1)]
+void UpdateX(uint2 id : SV_DispatchThreadID)
+{
+    int idx = id.x + id.y*_Size;
+    if(idx!=0&&idx!=20){
+        float fakeHessian=1.0f/(1.0f/(_DeltaTime*_DeltaTime)+4*_K);
+        float3 olderPos=_Pos[idx];
+        float3 newPos=_Pos[idx]-fakeHessian*_Gra[idx];
+        _Pos[idx]=_W*newPos+(1-_W)*_PosLast[idx];
+        _PosLast[idx]=olderPos;
+        //_Pos[idx]=newPos; for comparision
+    }
+}
+
+[numthreads(8,8,1)]
+void UpdateV(uint2 id : SV_DispatchThreadID)
+{
+    int idx = id.x + id.y*_Size;
+    if(idx!=0&&idx!=20){
+    _Vel[idx]=_Vel[idx]+(_Pos[idx]-_PosTilde[idx])/_DeltaTime;
+    }
+}
+
+[numthreads(8,8,1)]
+void Collision(uint2 id : SV_DispatchThreadID)
+{
+    int idx = id.x + id.y*_Size;
+    if(idx!=0&&idx!=20){
+        float radius=2.7f;
+        float distance=sqrt((_Pos[idx].x-_SphereCenter.x)*(_Pos[idx].x-_SphereCenter.x)+(_Pos[idx].y-_SphereCenter.y)*(_Pos[idx].y-_SphereCenter.y)+(_Pos[idx].z-_SphereCenter.z)*(_Pos[idx].z-_SphereCenter.z));
+        if(distance<=radius){
+            float3 intersection=_SphereCenter+radius*(_Pos[idx]-_SphereCenter)/distance;
+
+            _Vel[idx]=_Vel[idx]+(intersection-_Pos[idx])/_DeltaTime;
+            _Pos[idx]=intersection;
+        }
+    }
+}
+
+[numthreads(8,8,1)]
+void Test(uint2 id : SV_DispatchThreadID)
+{
+    //int idx = id.x + id.y*_Size;
+    if(id.x<_Size&&id.y<_Size){
+        int idx = id.x + id.y*_Size;
+        _Pos[idx]+=_Gravity*0.003;
+    }
+    
+}
